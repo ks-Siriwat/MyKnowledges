@@ -197,7 +197,7 @@
                 $activeToggle = $toggle;
             });
 
-            $(document).on('click', function (e) {
+            $('.navbar').on('click', function (e) {
                 if (!$(e.target).closest('.dropdown-menu, .dropdown-toggle').length) {
                     $menu.hide();
                     $activeToggle = null;
@@ -234,7 +234,7 @@
 
         $('.signout').on('click', function (e) {
             e.preventDefault();
-            window.open(`${_spPageContextInfo.webAbsoluteUrl}/_layouts/15/SignOut.aspx`);
+            window.open('https://spapp3.nawarat.co.th/_layouts/15/SignOut.aspx');
         });
     });
 </script>
@@ -262,7 +262,32 @@
     /* ถ้า menu มัน overlap ก็มา adjust max-width ตรงนี้ */
     @media (max-width: 1180px) {
         .navbar {
-            padding: 8px 12px;
+            padding: 8px 12px !important;
+            font-size: 45px !important;
+            height: 100px !important;
+        }
+
+        .nav-left {
+            display: grid;
+            align-items: center;
+        }
+
+        .app-name {
+            max-width: 24ch !important;
+            position: absolute;
+            left: 40%;
+            transform: translateX(-65%);
+            margin-right: 0 !important;
+
+            order: 2;
+        }
+
+        .nav-toggle {
+            order: 1;
+        }
+
+        .username {
+            max-width: 50ch;
         }
 
         .nav-toggle {
@@ -282,7 +307,8 @@
         }
 
         .nav-center.open {
-            width: max-content;
+            height: 100dvh !important;
+            width: 50dvw !important;
             display: flex !important;
             position: absolute;
             top: 100%;
@@ -323,11 +349,11 @@
         }
 
         .dropdown-menu {
-            position: absolute;
             box-shadow: none;
             border-radius: 0;
 
-            width: fit-content;
+            font-size: 40px !important;
+            width: 50dvw;
             position: absolute !important;
             box-shadow: none !important;
             border-radius: 0 !important;
@@ -342,19 +368,8 @@
         }
 
         .nav a {
-            padding: 12px 16px;
-        }
-
-        .app-name {
-            max-width: 24ch !important;
-            position: absolute;
-            left: 40%;
-            transform: translateX(-65%);
-            margin-right: 0 !important;
-        }
-
-        .username {
-            max-width: 50ch;
+            font-size: 45px !important;
+            padding: 12px 16px !important;
         }
     }
 
@@ -391,6 +406,8 @@
 
         padding: 8px 10px;
         border-radius: 4px;
+
+        cursor: default;
     }
 
     .nav-center {
