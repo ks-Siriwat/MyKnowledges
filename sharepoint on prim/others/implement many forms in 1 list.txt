@@ -1,0 +1,21 @@
+สร้าง content type ใหม่
+1. เข้า site setting > web designer galleries > site content types
+2. #create#
+3. Parent Content Type from > #List Content Types#
+4. Parent Content Type > #Item#
+5. Group > Existing group > #Custom ContentTypes#
+
+List ตัว App
+1. เข้า List Settings > Advanced Settings > Allow management of content types? > #Yes#
+2. กลับไปที่ List Settings
+3. Content Types > Add from existing site content types
+4. Select content type from Available site content types > #Add#
+
+การสร้าง field ใหม่
+1. List Settings
+2. Create column
+3 Optional. #uncheck# "Add to all content types" ถ้าอยากให้ column ที่สร้างแยก form กัน
+4 Optional. ใน List settings ถ้าจะเอา field ที่มีอยู่แล้วใส่ใน form อื่น ๆ ให้ click Content type name
+5. Click Add from existing site or list columns
+6. select available columns > Add
+## สามารถเปลี่ยน content types name ได้โดยไม่กระทบ internal name ##

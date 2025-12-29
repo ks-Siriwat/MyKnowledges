@@ -1,0 +1,20 @@
+สร้าง Solution ใหม่
+1. create new project
+2. เลือก template ASP.net web Application [C#]
+3. Project name: xxx > .net 4.7.2
+4. เลือก Web API
+
+สร้าง Controller
+1. right click #Controller folder#
+2. web API > Empty > ตั้งชื่อ Controller # Example "yyyController"
+
+Publish
+1. Folder > D: > สร้าง folder > Finish
+Delete existing > File publish > del prior save
+publish
+
+IIS Information
+
+IIS > SP1 > Site > Rest API > Right click > Add Application
+
+Alis : "asd" > Browse > D: > HR  > OK

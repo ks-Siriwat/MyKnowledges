@@ -1,0 +1,679 @@
+<nav class="navbar">
+    <div class="nav-left">
+        <div class="app-name">Application Name</div>
+        <button class="nav-toggle" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fa fa-bars"></i>
+        </button>
+    </div>
+    <div class="nav-center">
+        <div class="scroll-wrap">
+            <ul class="nav scroll-x" role="menubar">
+                <li id="home" role="none" class="">
+                    <a href="#" role="menuitem" class="nav-link" data-parent-id="#home"
+                        data-target="#MSOZoneCell_WebPartWPQ6">Home</a>
+                </li>
+
+                <li id="services" class="dropdown" role="menuitem">
+                    <a href="#" class="dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+                        Services ▾
+                    </a>
+                    <div class="dropdown-template">
+                        <a href="#" class="nav-link" data-parent-id="#services"
+                            data-target="#MSOZoneCell_WebPartWPQ5">Service 1</a>
+                        <a href="#" class="nav-link" data-parent-id="#services"
+                            data-target="#MSOZoneCell_WebPartWPQ5, #MSOZoneCell_WebPartWPQ4">Service 2</a>
+                    </div>
+                </li>
+
+                <li id="contact" role="none">
+                    <a href="#" role="menuitem" class="nav-link" data-parent-id="#contact"
+                        data-target="#contact">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="nav-right">
+        <div class="username signout" role="menuitem">{{Chanisa Patrawanpirom}}</div>
+    </div>
+</nav>
+
+<!-- jQuery (CDN) and behavior script -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jquery.SPServices/2013.01/jquery.SPServices-2013.01.min.js"></script>
+<script type="text/javascript">
+
+    window.AppName = 'Application Name';
+    function safeParseAny(value, fallback = null) {
+        try {
+            if (value == null) return fallback;
+            if (typeof value === 'object') return value;
+            if (typeof value === 'number' || typeof value === 'boolean') return value;
+            if (typeof value === 'string' && value.trim() !== '') {
+                return JSON.parse(value);
+            }
+            return fallback;
+        } catch {
+            return fallback;
+        }
+    }
+
+    $(document).ready(function () {
+        $('.username').text(_spPageContextInfo.userDisplayName);
+        $('.app-name').text(window.AppName);
+
+        const wrap = document.querySelector('.scroll-wrap');
+        const scroller = wrap.querySelector('.scroll-x');
+
+        function updateScrollHints() {
+            const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+
+            wrap.classList.toggle(
+                'can-scroll-left',
+                scroller.scrollLeft > 1
+            );
+
+            wrap.classList.toggle(
+                'can-scroll-right',
+                scroller.scrollLeft < maxScroll - 1
+            );
+        }
+
+        scroller.addEventListener('scroll', updateScrollHints);
+        window.addEventListener('resize', updateScrollHints);
+        updateScrollHints();
+
+        if (!_spPageContextInfo.isSiteAdmin)
+            hideToolsPage();
+    });
+
+    async function hideToolsPage() {
+        const recentTab = safeParseAny(localStorage.getItem(`${window.AppName.replaceAll(' ', '')}/recentTab`), null) || {
+            Parent: $('.nav-center ul li:first-child a').data('parent-id'),
+            Tabs: $('.nav-center ul li:first-child a').data('target')
+        }
+
+        $(recentTab.Parent).toggleClass('current-section');
+        $('#s4-ribbonrow').hide();
+
+        var raw = recentTab.Tabs;
+        if (!raw) return;
+        // Allow multiple selectors separated by commas (preserves spaces inside complex selectors)
+        var targets = String(raw).split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; });
+        if (targets.length === 0) return;
+        $(':is(.s4-wpcell, .s4-wpcell-plain):not(:first-child)').hide(); // hide all section
+        // If all targets are visible, hide them; otherwise hide others and show the requested targets
+        var allVisible = true;
+        $.each(targets, function (i, sel) {
+            if (!$(sel).is(':visible')) { return false; }
+        });
+
+        $.each(targets, function (i, sel) { $(sel).show(); });
+    }
+
+    $(function () {
+        // Mobile nav toggle
+        $('.nav-toggle').on('click', function (e) {
+            e.preventDefault();
+            var nav = $('.nav-center');
+            var expanded = $(this).attr('aria-expanded') === 'true';
+            if (expanded) {
+                nav.removeClass('open');
+                $(this).attr('aria-expanded', 'false');
+            } else {
+                nav.addClass('open');
+                $(this).attr('aria-expanded', 'true');
+            }
+        });
+
+        // Show/hide content sections when nav links are clicked (no navigation)
+        $(document).on('click', '.nav-link', function (e) {
+            e.preventDefault();
+            $(':is(.s4-wpcell, .s4-wpcell-plain):not(:first-child)').hide(); // hide all section
+
+            $('.nav li').removeClass('current-section');
+            // $(this).closest('li').toggleClass('current-section');
+            $($(this).data('parent-id')).toggleClass('current-section')
+            // Close any open dropdown menus after selection
+            $('.dropdown-menu').hide();
+            // On mobile, hide the nav after selecting a link
+            if ($('.nav-toggle').is(':visible')) {
+                $('.nav').removeClass('open');
+                $('.nav-toggle').attr('aria-expanded', 'false');
+            }
+
+            var raw = $(this).data('target');
+            if (!raw) return;
+            // Allow multiple selectors separated by commas (preserves spaces inside complex selectors)
+            var targets = String(raw).split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; });
+            if (targets.length === 0) return;
+
+            // If all targets are visible, hide them; otherwise hide others and show the requested targets
+            var allVisible = true;
+            $.each(targets, function (i, sel) {
+                if (!$(sel).is(':visible')) { return false; }
+            });
+
+            $.each(targets, function (i, sel) { $(sel).show(); });
+
+            const memorizeTab = {
+                Parent: $(this).data('parent-id'),
+                Tabs: $(this).data('target')
+            }
+            localStorage.setItem(`${window.AppName.replaceAll(' ', '')}/recentTab`, JSON.stringify(memorizeTab));
+        });
+
+        // dropdown menu clip trough overflow
+        $(function () {
+            let $menu = $('<div class="dropdown-menu"></div>').appendTo('body');
+            let $activeToggle = null;
+
+            $('.nav').on('click', '.dropdown-toggle', function (e) {
+                e.preventDefault();
+
+                const $toggle = $(this);
+
+                if ($toggle.is($activeToggle)) {
+                    $menu.hide();
+                    $activeToggle = null;
+                    return;
+                }
+
+                const rect = this.getBoundingClientRect();
+                const $items = $toggle.siblings('.dropdown-template').children().clone();
+
+                $menu
+                    .empty()
+                    .append($items)
+                    .css({
+                        top: rect.bottom,
+                        left: rect.left
+                    })
+                    .show();
+
+                $activeToggle = $toggle;
+            });
+
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('.dropdown-menu, .dropdown-toggle').length) {
+                    $menu.hide();
+                    $activeToggle = null;
+                    $('.nav-center').hasClass('open') ? $('.nav-center').removeClass('open') : $('.nav-center').addClass('open');
+                }
+            });
+
+            $('.nav-toggle').on('click', function (e) {
+                console.log('click', $('.nav-center').hasClass('open'));
+                $('.nav-center').hasClass('open') ? $('.nav-center').removeClass('open') : $('.nav-center').addClass('open');
+            });
+
+            $(document).on('click', '.dropdown-menu > a', function () {
+                $menu.hide();
+                $activeToggle = null;
+            });
+
+            window.addEventListener(
+                'scroll',
+                () => {
+                    if ($menu.is(':visible')) {
+                        $menu.hide();
+                        $activeToggle = null;
+                    }
+                },
+                true // 👈 capture phase (THIS is the trick)
+            );
+        });
+
+        // Clicking outside closes any open dropdown
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.dropdown').length) $('.dropdown-menu').hide();
+        });
+
+        $('.signout').on('click', function (e) {
+            e.preventDefault();
+            window.open(`${_spPageContextInfo.webAbsoluteUrl}/_layouts/15/SignOut.aspx`);
+        });
+    });
+</script>
+
+<style>
+    /* Webpart Component ID มาแก้ตรงนี้ */
+    #MSOZoneCell_WebPartWPQ3 {
+        top: 0;
+        position: sticky;
+        z-index: 1100;
+        height: auto;
+    }
+
+    /* Mobile / responsive styles */
+    .nav-toggle {
+        display: none;
+        background: transparent;
+        border: 0;
+        color: white;
+        font-size: 22px;
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+    /* ถ้า menu มัน overlap ก็มา adjust max-width ตรงนี้ */
+    @media (max-width: 1180px) {
+        .navbar {
+            padding: 8px 12px;
+        }
+
+        .nav-toggle {
+            display: block;
+        }
+
+        .nav-center {
+            display: none !important;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: dodgerblue;
+            flex-direction: column;
+            gap: 0;
+            z-index: 200;
+        }
+
+        .nav-center.open {
+            width: max-content;
+            display: flex !important;
+            position: absolute;
+            top: 100%;
+
+            max-height: calc(100vh - 56px);
+            overflow-y: auto;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        /* kill horizontal scroll on mobile */
+        .scroll-wrap {
+            overflow: visible;
+        }
+
+        .scroll-x {
+            flex-direction: column;
+            overflow: visible;
+            height: auto;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.28);
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            box-shadow: none;
+            border-radius: 0;
+
+            width: fit-content;
+            position: absolute !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+        }
+
+        .dropdown-menu a {
+            padding-left: 28px;
+        }
+
+        .nav li {
+            width: 100%;
+        }
+
+        .nav a {
+            padding: 12px 16px;
+        }
+
+        .app-name {
+            max-width: 24ch !important;
+            position: absolute;
+            left: 40%;
+            transform: translateX(-65%);
+            margin-right: 0 !important;
+        }
+
+        .username {
+            max-width: 50ch;
+        }
+    }
+
+    .navbar {
+        max-width: inherit;
+        background: dodgerblue;
+        color: white;
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 300;
+        align-content: center;
+        flex-wrap: wrap;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .nav-left {
+        max-width: 20%;
+    }
+
+    .app-name {
+        color: white;
+        font-weight: 700;
+        margin: auto;
+
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+
+        padding: 8px 10px;
+        border-radius: 4px;
+    }
+
+    .nav-center {
+        max-width: 60%;
+        position: relative;
+    }
+
+    .nav {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        gap: 12px;
+        flex: 1 1 auto;
+
+        min-width: 0;
+        max-width: 100%;
+        flex-wrap: nowrap;
+
+        overflow-x: auto;
+
+    }
+
+    .nav li {
+        display: flex;
+        position: relative;
+    }
+
+    .nav .current-section {
+        background: rgba(55, 55, 55, 0.103);
+        border-radius: 4px;
+    }
+
+    .nav a {
+        width: inherit;
+        color: white;
+        text-decoration: none;
+        padding: 8px 10px;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .nav a:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 4px;
+    }
+
+    .nav-link {
+        max-width: 20ch;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .dropdown-template {
+        display: none;
+    }
+
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        min-width: 160px;
+        background: white;
+        color: dodgerblue;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+        border-radius: 4px;
+        padding: 4px 0;
+        z-index: 10000;
+    }
+
+    .dropdown-menu a {
+        color: dodgerblue;
+        display: block;
+        padding: 8px 12px;
+        text-decoration: none;
+    }
+
+    .dropdown-menu a:hover {
+        background: rgba(0, 0, 0, 0.04);
+    }
+
+    .nav-right {
+        max-width: 20%;
+    }
+
+    .username {
+        color: white;
+        font-weight: 700;
+        margin-left: auto;
+
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    .container {
+        padding: 16px;
+    }
+
+    .content-section {
+        display: none;
+        padding: 12px;
+        background: #f7f7f7;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+    }
+
+    .signout {
+        cursor: pointer;
+    }
+
+    .signout[role="menuitem"] {
+        padding: 8px 10px;
+        border-radius: 4px;
+    }
+
+    .signout[role="menuitem"]:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: white;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .scroll-wrap {
+        position: relative;
+    }
+
+    .scroll-wrap::before,
+    .scroll-wrap::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        width: 128px;
+        height: 100%;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity .2s;
+    }
+
+    .scroll-wrap::before {
+        z-index: 1;
+        left: 0;
+        background: linear-gradient(to right, dodgerblue, transparent);
+    }
+
+    .scroll-wrap::after {
+        right: 0;
+        background: linear-gradient(to left, dodgerblue, transparent);
+    }
+
+    .scroll-wrap.can-scroll-left::before {
+        opacity: 1;
+    }
+
+    .scroll-wrap.can-scroll-right::after {
+        opacity: 1;
+    }
+
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.02);
+        border-radius: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.18);
+        border-radius: 8px;
+    }
+
+    /* HIDE SHAREPOINT WEBPART COMPONENTS */
+    #sideNavBox,
+    #s4-titlerow,
+    #suiteBarDelta {
+        display: none !important;
+    }
+
+    #s4-bodyContainer {
+        padding-bottom: 0px !important;
+    }
+
+    #contentBox {
+        margin: 0px 0px 0px 0px !important;
+        min-width: 0px;
+    }
+
+    #contentRow {
+        padding-top: 0px !important;
+    }
+
+    .ms-webpartPage-root {
+        border-spacing: 0px !important;
+    }
+
+    .ms-list-itemLink-td,
+    th[aria-label="Open Menu"] {
+        display: none;
+    }
+
+    .ms-webpart-zone> :not(:first-child) {
+        font-size: 18px !important;
+        padding-left: 50px !important;
+    }
+
+    #DeltaPlaceHolderMain input[type="button"]:hover:enabled {
+        cursor: pointer;
+    }
+
+    .ms-webpart-zone.ms-fullWidth>div:not(.s4-wpcell-plain) {
+        display: block;
+        margin-left: 0;
+        max-width: 90vw;
+        overflow: auto;
+        /* min-height: 40vh; */
+        height: 40vh;
+        /* max-height: 80vh; */
+    }
+
+    tr.ms-viewheadertr.ms-vhltr>*:not(:first-child):not(:last-child) {
+        min-width: 50px;
+    }
+
+    .ms-listviewtable .ms-itmhover td {
+        white-space: nowrap;
+        max-width: 21rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ms-rtestate-field {
+        white-space: nowrap;
+        width: 100%;
+        overflow: visible;
+        text-overflow: ellipsis;
+        word-wrap: break-word;
+    }
+
+    td[role="gridcell"] .ms-rtestate-field {
+        display: -webkit-box;
+        line-height: 1.4em;
+        max-height: 2.8em;
+        white-space: nowrap;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-wrap: break-word;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+    }
+
+    .ms-csrlistview-controldiv {
+        position: sticky;
+        top: 0;
+        z-index: 900;
+        background: white;
+        padding-top: 5px;
+        padding-bottom: 0;
+    }
+
+    .ms-csrlistview-controldiv input {
+        position: absolute;
+    }
+
+    .ms-csrlistview-controldiv span {
+        float: right;
+    }
+
+    .ms-InlineSearch-DivBaseline {
+        margin-left: 0;
+    }
+
+    .ms-webpart-zone.ms-fullWidth>div:not(.s4-wpcell-plain) .ms-wpContentDivSpace>table>tbody>tr>td {
+        width: 90vw;
+    }
+
+    .ms-webpart-zone.ms-fullWidth>div:not(.s4-wpcell-plain) .ms-wpContentDivSpace>table>tbody>tr>td .ms-listviewtable {
+        width: 100%;
+    }
+</style>
